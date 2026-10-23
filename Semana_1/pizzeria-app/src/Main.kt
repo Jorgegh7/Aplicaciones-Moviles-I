@@ -136,26 +136,29 @@ fun main() {
 
         continuaComprando = true
         while (continuaComprando) {
-            val ingredientesStock = pizzas[pizza.nombre]?.get("ingredientes") as List<String>
             print("Ingresa el numero de unidades: ")
             try {
-                // si readLine() devuelve null se usa "" y toInt() lanza NumberFormatException,
-                // así null, vacío y letras terminan todos en el catch
-                pedido.numeroPizzas= (readLine() ?: "").toInt()
+                // toInt() lanza NumberFormatException si el texto no es un número (ej: "hola" o vacío),
+                // y el catch lo atrapa para volver a preguntar
+                pedido.numeroPizzas = (readLine() ?: "").toInt()
+
                 if (pedido.numeroPizzas <= 0) {
                     println("El numero de Pizzas debe ser mayor a 0")
                     println()
+                } else {
+                    // el stock máximo lo limita el ingrediente con menos unidades
+                    val maxPizzas = pizza.ingredientes.minOf { inventario[it] ?: 0 }
 
-                }else if (pedido.numeroPizzas > ingredientesStock.minOf {inventario[it] ?: 0 }){
-                    println("Stock superado. Elige un número menor de unidades")
-                    println()
-                 }else {
-                     for(ingrediente in ingredientesStock){
-                         inventario[ingrediente] = inventario[ingrediente]!! - pedido.numeroPizzas
-                         println("Inventario actualizado: $ingrediente ${inventario[ingrediente]} unidades")
-                     }
-
-                    continuaComprando = false
+                    val mensaje = if (pedido.numeroPizzas <= maxPizzas) {
+                        for (ingrediente in pizza.ingredientes) {
+                            inventario[ingrediente] = inventario[ingrediente]!! - pedido.numeroPizzas
+                        }
+                        continuaComprando = false
+                        "Pedido confirmado: inventario actualizado"
+                    } else {
+                        "El pedido no puede ser completado: no hay ingredientes suficientes"
+                    }
+                    println(mensaje)
                     println()
                 }
             } catch (e: NumberFormatException) {
